@@ -89,7 +89,7 @@ describe('Check if Logged Out Pages Load', function(){
 
 
 describe('HealthTap Selenium Tests', function(){
-  this.timeout(10000);
+  this.timeout(15000);
 
   // Load browser with home page
   before(function( done ){
