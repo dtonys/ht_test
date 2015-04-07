@@ -58,7 +58,6 @@ exports.static_page_urls = [
   '/sign_up',
   '/prime-trial',
   '/payment',
-  '/free_consult',
   '/expert_sign_up',
   '/expert_sign_up?Concierge=true',
   '/expert_sign_up?Prime=true',

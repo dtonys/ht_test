@@ -23,9 +23,26 @@ var letters = [
 //   browser.get(app.environment + url_str);
 // };
 
-var login = exports.login = function(){
-  promise.get('https://qa2.healthtap.com')
+// var login = exports.login = function(){
+//   promise.get('https://qa2.healthtap.com')
+// };
+
+var login = exports.login = function( user_name, password ){
+  p.promise = p.promise
+    .get("/login")
+    .elementByCss('.email-input').type(user_name)
+    .elementByCss('.password-input').type(password)
+    .elementByCss('.submit-form').click()
+    .sleep(5000);
 };
+
+var logout = exports.logout = function(){
+
+  p.promise = p.promise
+    .get("/logout")
+    .sleep(3000);
+};
+
 
 // var login = exports.login = function(form_selector, username, password){
 //   browser
