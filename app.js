@@ -1,4 +1,5 @@
 var wd = require('wd');
+var _ = require('lodash');
 var request = require('request');
 var assert = require('chai').assert;
 var config = require('./config');
@@ -25,34 +26,6 @@ var environment = 'qa2';
 if( argv['b'] && browsers.indexOf( argv['b'] ) !== -1 ) browser_name = argv['b'];
 if( argv['e'] && environments[argv['e']] ) environment =  argv['e'];
 
-// Test all logged out pages to see if they load from simple GET request
-// describe('Logged Out Static Pages Should Load < 4 Seconds', function(){
-//   this.timeout(4000);
-
-//   _.each( config.static_page_urls, function(url, index){
-//     it(' GET '+url+' => 200', function( done ){
-//       var path = environments[environment]+url;
-//       request( path, function(err, response, body){
-//         assert( response.statusCode === 200, path+' loads successfully' );
-//         done();
-//       });
-//     });
-//   });
-// });
-
-// describe('Logged Out SEO Pages Should Load < 4 Seconds', function(){
-//   this.timeout(4000);
-//   _.each( config.seo_page_urls, function(url, index){
-//     it(' GET '+url+' => 200', function( done ){
-//       var path = environments[environment]+url;
-//       request( path, function(err, response, body){
-//         assert( response.statusCode === 200, path+' loads successfully' );
-//         done();
-//       });
-//     });
-//   });
-// });
-
 // Setup Selenium Config
 wd.configureHttp({
   timeout: 60000,
@@ -60,6 +33,13 @@ wd.configureHttp({
   retryDelay: 100,
   baseUrl: environments[environment]
 });
+
+// wd.configureHttp({
+//   timeout: 60000,
+//   retries: 3,
+//   retryDelay: 100,
+//   baseUrl: 'https://qa2.healthtap.com'
+// });
 
 var browser = exports.browser = wd.promiseChainRemote();
 var p = exports.p = { promise: null };
@@ -76,20 +56,40 @@ var expert_password = '12345678';
 // Include utils ( will include app to get reference to the promise )
 var util = require('./util.js');
 
-// util.login('member1003@gmail.com', 'm3mber');
+describe('Check if Logged Out Pages Load', function(){
 
-// p.promise = p.promise
-//   .sleep(1000)
-//   .then(function(){
-//     console.log('!');
-//   })
-//   .sleep(1000)
-//   .nodeify( function(){
-//     console.log('done!!');
-//   })
+  describe('Static Pages Should Load < 5 Seconds', function(){
+    this.timeout(5000);
 
-describe('HealthTap Tests', function(){
-  this.timeout(20000);
+    _.each( config.static_page_urls, function(url, index){
+      it(' GET '+url+' => 200', function( done ){
+        var path = environments[environment]+url;
+        request( path, function(err, response, body){
+          assert( response.statusCode === 200, path+' loads successfully' );
+          done();
+        });
+      });
+    });
+  });
+
+  describe('SEO Pages Should Load < 5 Seconds', function(){
+    this.timeout(4000);
+    _.each( config.seo_page_urls, function(url, index){
+      it(' GET '+url+' => 200', function( done ){
+        var path = environments[environment]+url;
+        request( path, function(err, response, body){
+          assert( response.statusCode === 200, path+' loads successfully' );
+          done();
+        });
+      });
+    });
+  });
+
+});
+
+
+describe('HealthTap Selenium Tests', function(){
+  this.timeout(10000);
 
   // Load browser with home page
   before(function( done ){
@@ -98,7 +98,7 @@ describe('HealthTap Tests', function(){
       .init({ browserName: browser_name })
       .setAsyncScriptTimeout(30000)
       .get('/')
-      .then(done);
+      .then(done.bind(null, null));
 
   });
 
@@ -106,7 +106,7 @@ describe('HealthTap Tests', function(){
 
     before(function( done ){
       util.logout();
-      p.promise = p.promise.then(done)
+      p.promise = p.promise.then( done.bind(null, null) )
     });
 
     it('Should set guest flag', function( done ){
@@ -115,9 +115,7 @@ describe('HealthTap Tests', function(){
         assert( res === true, path+' guest flag set' );
         return p.promise;
       })
-      .then(function(){
-        done();
-      });
+      .then( done.bind(null, null) );
 
     });
 
@@ -127,9 +125,7 @@ describe('HealthTap Tests', function(){
         assert( res === '/', path+' url is home page' );
         return p.promise;
       })
-      .then(function(){
-        done();
-      });
+      .then( done.bind(null, null) );
 
     });
 
@@ -140,10 +136,7 @@ describe('HealthTap Tests', function(){
     before(function( done ){
       util.logout();
       util.login(member_name, member_password);
-      p.promise = p.promise
-      .then(function(){
-        done();
-      });
+      p.promise = p.promise.then( done.bind(null, null) );
     });
 
     it('Should set member flag', function( done ){
@@ -151,9 +144,7 @@ describe('HealthTap Tests', function(){
         assert( res === true, path+' member flag set' );
         return p.promise;
       })
-      .then(function(){
-        done();
-      });
+      .then( done.bind(null, null) );
     });
   });
 
@@ -162,22 +153,140 @@ describe('HealthTap Tests', function(){
     before(function( done ){
       util.logout();
       util.login(expert_name, expert_password);
-      p.promise = p.promise
-      .then(function(){
-        done();
-      });
+      p.promise = p.promise.then( done.bind(null, null) );
     });
 
     it('Should set expert flag', function( done ){
       p.promise = p.promise.eval('App.defaults.user_json.person.expert', function( err, res ){
         assert( res === true, path+' expert flag set' );
+        return p.promise;
       })
-      .then(function(){
-        done();
-      });
+      .then( done.bind(null, null) );
     });
 
   });
+
+  describe('Sign Up ', function(){
+
+    function testError( url, $email, $password, $submit, $error ){
+
+      return function( done ){
+        p.promise = p.promise.get( url );
+
+        util.execute_signup( $email, $password, $submit, {
+          email: 'member1003@gmail.com',
+          password: 'wrong_password'
+        })
+
+        p.promise = p.promise
+        .sleep(2000)
+        .elementByCssOrNull( $error, function(err, el){
+          assert( !!el, ' error found ');
+        })
+        .isDisplayed(function( err, res ){
+           assert( res === true, ' error is visible ');
+        })
+        .then( done.bind(null, null) );
+      }
+
+    }
+
+    // todo
+    // function testSuccess( $email, $password ){
+    // }
+
+    beforeEach(function( done ){
+      util.logout();
+      p.promise = p.promise.then( done.bind(null, null) );
+    });
+
+    describe('v1', function(){
+
+      it('Should show error message on error',
+        testError('/sign_up?v=1', '.email-input', '.password-input', '.btn.primary', '.signup-form .error' ) );
+
+      it('Should go to nux on success', function( done ){
+        p.promise = p.promise.get('/sign_up?v=1');
+
+        util.execute_signup('.email-input', '.password-input', '.btn.primary')
+
+        p.promise = p.promise.eval('window.location.pathname', function( err, res ){
+          assert( res === '/sign_up', path+' url === /sign_up' );
+        })
+        .get('/logout')
+        .sleep(1000)
+        .acceptAlert()
+        .then( done.bind(null, null) );
+      });
+
+    });
+
+    describe('v2', function(){
+
+      it('Should show error message on error',
+        testError('/sign_up?v=2', '.email', '.password', '.btn.signup', '.signup-form .error' ) );
+
+      it('Should go to nux on success', function( done ){
+        p.promise = p.promise.get('/sign_up?v=2');
+
+        util.execute_signup('.email', '.password', '.btn.signup')
+
+        p.promise = p.promise.eval('window.location.pathname', function( err, res ){
+          assert( res === '/sign_up', path+' url === /sign_up' );
+        })
+        .then( done.bind(null, null) );
+
+      });
+
+    });
+
+    describe('v3', function(){
+
+      it('Should show error message on error',
+        testError('/sign_up?v=2', '.email', '.password', '.btn.signup', '.signup-form .error' ) );
+
+      it('Should go to nux on success', function( done ){
+        p.promise = p.promise.get('/sign_up?v=3');
+
+        util.execute_signup('.email', '.password', '.btn.signup')
+
+        p.promise = p.promise.eval('window.location.pathname', function( err, res ){
+          assert( res === '/sign_up', path+' url === /sign_up' );
+        })
+        .then( done.bind(null, null) );
+
+      });
+
+    });
+
+    describe('v4', function(){
+
+      it('Should show error message on error',
+        testError('/sign_up?v=2', '.email', '.password', '.btn.signup', '.signup-form .error' ) );
+
+      it('Should go to nux on success', function( done ){
+        p.promise = p.promise.get('/sign_up?v=4');
+
+        util.execute_signup('.email', '.password', '.btn.signup')
+
+        p.promise = p.promise.eval('window.location.pathname', function( err, res ){
+          assert( res === '/sign_up', path+' url === /sign_up' );
+        })
+        .then( done.bind(null, null) );
+
+      });
+
+    });
+  });
+
+  // describe('Payment ', function(){
+  //   describe('v3 ( Default )', function(){ 
+      
+  //   });
+  //   describe('v10 ( Prime trial flow ) ', function(){
+
+  //   });
+  // });  
 
   // close the browser when done
   after(function( done ){
@@ -187,15 +296,3 @@ describe('HealthTap Tests', function(){
   });
 
 });
-
-
-// describe('Logout', function(){
-//   this.timeout(4000);
-//   it('Should Work', function( done ){
-//     util.logout(user_name, password);
-//   });
-// });
-
-// describe('Signup Pages', function(){
-//   this.timeout(4000);
-// });

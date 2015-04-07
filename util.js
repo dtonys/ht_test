@@ -27,6 +27,15 @@ var letters = [
 //   promise.get('https://qa2.healthtap.com')
 // };
 
+var randomString = exports.randomString = function( str_length ){
+  var str = '';
+  for( var i = 0; i < str_length; i++ ){
+    str += letters[Math.floor(Math.random()*letters.length)];
+  };
+  return str;
+};
+
+
 var login = exports.login = function( user_name, password ){
   p.promise = p.promise
     .get("/login")
@@ -41,6 +50,19 @@ var logout = exports.logout = function(){
   p.promise = p.promise
     .get("/logout")
     .sleep(3000);
+};
+
+var execute_signup = exports.execute_signup = function( $email, $password, $submit, args ){
+  args = args || {};
+  var email = args.email || ( randomString(6)+'@'+randomString(3)+'.'+randomString(3) );
+  var password = args.password || randomString(6);
+
+  p.promise = p.promise
+  .elementByCss($email).type(email)
+  .elementByCss($password).type(password)
+  .elementByCss($submit).click()
+  .sleep(3000);
+
 };
 
 
@@ -66,11 +88,3 @@ var logout = exports.logout = function(){
 //     .deleteCookie('landing_page')
 //     .deleteCookie('entry_point');
 // };
-
-var randomString = exports.randomString = function( str_length ){
-  var str = '';
-  for( var i = 0; i < str_length; i++ ){
-    str += letters[Math.floor(Math.random()*letters.length)];
-  };
-  return str;
-};
