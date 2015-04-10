@@ -10,6 +10,8 @@ var letters = [
   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
 ];
 
+var digits = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' ]
+
 // var _url2 = exports._url2 = function( url ){
 //   return browser.get( url );
 // };
@@ -31,6 +33,14 @@ var randomString = exports.randomString = function( str_length ){
   var str = '';
   for( var i = 0; i < str_length; i++ ){
     str += letters[Math.floor(Math.random()*letters.length)];
+  };
+  return str;
+};
+
+var randomNumString = exports.randomNumString = function( str_length ){
+  var str = '';
+  for( var i = 0; i < str_length; i++ ){
+    str += digits[Math.floor(Math.random()*digits.length)];
   };
   return str;
 };

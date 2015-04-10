@@ -8,4 +8,15 @@ Get Chrome Driver, put into PATH: http://chromedriver.storage.googleapis.com/ind
 
 Start Selenium server: java -jar /usr/bin/selenium-server-standalone-2.43.0.jar
 
-Run the test: node app.js
+Run the test: mocha app.js
+
+See https://github.com/admc/wd for details.
+
+
+Useful links:
+
+Mapping to Selenium API
+- https://github.com/admc/wd/blob/master/doc/api.md
+Braintree Sandbox
+- https://www.braintreepayments.com/docs/ruby/reference/sandbox
+
